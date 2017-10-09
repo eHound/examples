@@ -9,6 +9,8 @@ As such access is restricted to those Accounts for which the relevant licence ar
 
 This Developer Portal is focused on the Data APIs, and provides code samples and other guidance to assist developers in their implementation.
 
+If you have any further questions contact us at support@ehoundplatform.com
+
 ## Supporting Documentation
 Direct API Usage documentation is available as a Postman collection at:
 https://documenter.getpostman.com/view/2074260/ehound-data-api-documentation/7185ZKF
