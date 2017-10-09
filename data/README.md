@@ -11,6 +11,10 @@ This Developer Portal is focused on the Data APIs, and provides code samples and
 
 Simply use the tabs of the left hand side to access this information, and if you have any further questions simply contact us at support@ehoundplatform.com
 
+## Supporting Documentation
+Direct API Usage documentation is available as a Postman collection at:
+https://documenter.getpostman.com/view/2074260/ehound-data-api-documentation/7185ZKF
+
 ## Other
 
 eHound has a number of other API tools that have been designed for the needs of specific clients. If you have any needs beyond those described above please let us know, as we would love to assist where possible.

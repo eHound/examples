@@ -15,8 +15,8 @@ Simply use the tabs of the left hand side to access this information, and if you
 
 ## Supporting Documentation
 
-Further examples are available at:
-https://githug.com/ehound/examples/
+Direct API usage documentation is available as a Postman Collection at:
+https://documenter.getpostman.com/view/2074260/ehound-proximity-search-api-documentation/7185ENJ
 
 ## Other
 
