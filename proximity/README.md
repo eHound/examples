@@ -11,7 +11,7 @@ https://developers.google.com/maps/
 
 This Developer Portal is focused on the Proximity API, and provides code samples and other guidance to assist developers in their implementation.
 
-Simply use the tabs of the left hand side to access this information, and if you have any further questions contact us at support@ehoundplatform.com
+If you have any further questions contact us at support@ehoundplatform.com
 
 ## Supporting Documentation
 
