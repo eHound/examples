@@ -11,7 +11,7 @@ TBA
 ### IVR
 TBA
 
-Simply use the tabs of the left hand side to access this information, and if you have any further questions simply contact us at support@ehoundplatform.com
+If you have any further questions simply contact us at support@ehoundplatform.com
 
 ## Other
 
