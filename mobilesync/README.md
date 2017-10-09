@@ -6,7 +6,7 @@ This service allows for the synchronisation of data between eHound and native (m
 
 This Developer Portal is focused on the Mobile Sync API, and provides code samples and other guidance to assist developers in their implementation.
 
-Simply use the tabs of the left hand side to access this information, and if you have any further questions simply contact us at support@ehoundplatform.com
+If you have any further questions simply contact us at support@ehoundplatform.com
 
 ## Other
 
