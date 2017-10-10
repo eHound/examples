@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <title>Locator Demo using eHound Proximity Search API v1.2 and Google Maps v3</title>
+        <style type="text/css">
+            #mapCanvas {
+                height: 450px;
+                width: 600px;
+                margin-bottom: 10px;
+            }
+            .addressBox {
+                margin-bottom: 10px;
+                width: 600px;
+            }
+            .addressBox a {
+                float: right;
+            }
+            #address {
+                width: 250px;
+            }
+        </style>
+    </head>
+    <body onload="initialize();">
+        <div>Search example: Enter any location in Australia. e.g. Melbourne or Pitt St Sydney or 2000</div>
+        <div class="addressBox">
+            <form action="" onsubmit="searchAroundAddress(); return false;">
+                <fieldset>
+                    <legend>Address Search</legend>
+                    <label for="address">Address:</label>
+                    <input id="address" type="text" value="">
+                </fieldset>
+                <fieldset>
+                    <legend>Filter Parameters</legend>
+                    <label for="category">Category:</label>
+                    <select id="category">
+                        <option value=""></option>
+                        <option value="177">Category 1</option>
+                        <option value="186">Category 2</option>
+                    </select>
+                    <!--
+                    <hr>
+                    <input type="checkbox" class="openingHours" value="open24x7" id="open24x7" name="openingHours"><label for="open24x7">24x7</label>
+                    <input type="checkbox" class="openingHours" value="monday_open" id="monday_open" name="openingHours"><label for="monday_open">Monday</label>
+                    <input type="checkbox" class="openingHours" value="tuesday_open" id="tuesday_open" name="openingHours"><label for="tuesday_open">Tuesday</label>
+                    <input type="checkbox" class="openingHours" value="wednesday_open" id="wednesday_open" name="openingHours"><label for="wednesday_open">Wednesday</label>
+                    <input type="checkbox" class="openingHours" value="thursday_open" id="thursday_open" name="openingHours"><label for="thursday_open">Thursday</label>
+                    <input type="checkbox" class="openingHours" value="friday_open" id="friday_open" name="openingHours"><label for="friday_open">Friday</label>
+                    <input type="checkbox" class="openingHours" value="saturday_open" id="saturday_open" name="openingHours"><label for="saturday_open">Saturday</label>
+                    <input type="checkbox" class="openingHours" value="sunday_open" id="sunday_open" name="openingHours"><label for="sunday_open">Sunday</label>
+                    -->
+                </fieldset>
+                <input type="submit" name="search" value="Search">
+            </form>
+            <button onclick="searchAroundMapCenter();">Search Around Current Map Center</button>
+        </div>
+        <div id="mapCanvas"></div>
+        <div id="resultSet"></div>
+
+        <script type="text/javascript" src="http://app.ehoundplatform.com/api/1.2/proximitySSL.js?key=xz396aw1qe432q1"></script>
+        <script type="text/javascript" src="http://maps.google.com/maps/api/js?region=AU&libraries=places"></script>
+        <script type="text/javascript">
+            var geocoder;
+            var map;
+            var autocomplete;
+            var bounds;
+            var markersArray = [];
+            var infoWindow;
+            var address;
+            var mapCanvas;
+            var mapCenterLat = '-28.1594';
+            var mapCenterLon = '135.6456';
+
+            function initialize() {
+                address = document.getElementById("address");                   // Specify the address field for the autocomplete.
+                mapCanvas = document.getElementById("mapCanvas");               // Specify the element to attach the map to.
+
+                var mapOptions = {                                              // Configure the map option parameters object
+                    zoom: 4,
+                    center: new google.maps.LatLng(mapCenterLat, mapCenterLon), // Center the map on the provided coordinates.
+                    mapTypeId: google.maps.MapTypeId.ROADMAP                    // What type of map artwork to show.
+                }
+
+                map = new google.maps.Map(                                      // Initialise the map.
+                    mapCanvas,                                                  // The element the map should attach to.
+                    mapOptions                                                  // The map options.
+                );
+
+                var defaultBounds = new google.maps.LatLngBounds(               // Initialise the default bounds of the map - the area you want to display on first load.
+                    new google.maps.LatLng(-9.44, 109.51),                      // Usually this is the country or state that you primarily operate in.
+                    new google.maps.LatLng(-44.59, 155.56)                      // Paramerts are top left, and bottom right for that area.
+                );
+
+                var autocompleteOptions = {                                     // Initialise the Autocomplete options.
+                    bounds: defaultBounds                                       // Setting the bounds biases the autocomplete suggestions to locations shown on the map.
+                };
+
+                autocomplete = new google.maps.places.Autocomplete(             // Initialise the autocomplete.
+                    address,                                                    // The element the autocomplete should attach to.
+                    autocompleteOptions                                         // The autocomplete options.
+                );
+
+                infoWindow = new google.maps.InfoWindow();                      // Initialise single info window to show only one at a time
+
+                google.maps.event.addListener(map, 'click', function() {
+                    infoWindow.close();                                         // When clicking on the map, close the open infoWindow.
+                });
+
+                geocoder = new google.maps.Geocoder();                          // Initialise Google's Geocoder so it's ready for later use.
+            }
+
+            function addMarkerOverlay(location, title, infoBox, image) {
+                var marker = new google.maps.Marker({                           // Initialise the map marker.
+                    position: location,                                         // Where the marker appears on the map.
+                    map: map,                                                   // The map the marker should appear on.
+                    icon: image                                                 // The image that should be displayed.
+                });
+                marker.setTitle(title);                                         // The title for the marker.
+
+                google.maps.event.addListener(marker, 'click', function() {     // When clicking on a marker,
+                     infoWindow.setContent(infoBox);                            // set the infoWindow content to the provided string
+                     infoWindow.open(map, marker);                              // and open the infoWindow on the map at the marker.
+                });
+
+                markersArray.push(marker);                                      // Add this marker to the array of markers.
+            }
+
+            function deleteAllMarkers() {
+                if (markersArray) {
+                    for (i in markersArray) {
+                        markersArray[i].setMap(null);                           // Clear the markers from the map.
+                    }
+                    markersArray.length = 0;
+                }
+            }
+
+            function centerMap(lat,lon) {
+                var centrePoint = new google.maps.LatLng(lat,lon);              // Initialise the coordinates object for the specified lat and lon values.
+                map.setCenter(centrePoint);                                     // Set the center point of the map to those coordinates.
+            }
+
+            function centerMapOnMarker(i, lat, lon) {
+                google.maps.event.trigger(markersArray[i], 'click');            // Trigger the click event on the map for the given marker.
+                centerMap(lat, lon)                                             // Center the map on the marker's coordinates.
+                map.setZoom(19);                                                // Zoom into the marker.
+                scroll(0,0);
+                return false;
+            }
+
+            function searchAroundAddress() {
+                deleteAllMarkers();
+
+                if (address.value == "" || address.value == "Enter a location") {
+                    alert("Please enter address for your search.");
+                    address.focus();
+                    return false;
+                }
+
+                geocoder.geocode(
+                    {'address': address.value},                                 // Pass the user entered address string to Google's Geocoder, to get lat/lon coordinates back.
+                    function(results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        performSearch(results[0].geometry.location);            // If the geocoding worked, use those coordinates to search eHound's location database.
+                    } else {
+                        if (status == 'ZERO_RESULTS') {
+                            alert("Sorry, your search location could not be found. Please check and try again.");
+                        } else {
+                            alert("Geocode was not successful for the following reason: " + status);
+                        }
+                    }
+                });
+            }
+
+            function searchAroundMapCenter() {
+                deleteAllMarkers();
+                performSearch(map.getCenter());
+            }
+
+            function buildFiltersAndLogic() {
+                var filters = [];
+                var logic = [];
+
+                var category = document.getElementById('category');
+                var selectedCategory = category.options[category.selectedIndex].value;
+
+                if (selectedCategory !== '') {
+                    filters.push(new ehound_SearchFilter(
+                        'cat_id',
+                        'eq',
+                        selectedCategory
+                    ));
+                    logic.push('AND');
+                }
+                /*  DEVELOPER NOTE
+                    Your filters will vary depending on your business requirements,
+                    and on how your eHound Categories and Location details have been
+                    configured.
+                    Please see the documentation for more information:
+                    https://app.ehoundplatform.com/my-hound/Developers
+                */
+                /*
+                var openingHours = document.getElementsByName('openingHours');
+                openingHours.forEach(function(currentValue, index, arr){
+                    if (arr[index].checked) {
+                        filters.push(new ehound_SearchFilter(arr[index].value, 'eq', 1));
+                        logic.push('OR');
+                    }
+                });
+                */
+
+                if (filters.length == 1) {
+                    logic == [];
+                }
+
+                return {
+                    filters: filters,
+                    logic: logic.join()
+                };
+            }
+
+            function performSearch(location) {
+
+                var searchLat = location.lat();
+                var searchLon = location.lng();
+
+                var image = new google.maps.MarkerImage(                // Create a custom marker to mark initial search location.
+                    'search_location.png',                              // Marker image path.
+                    new google.maps.Size(32, 32),                       // This marker is 32 pixels wide by 32 pixels tall.
+                    new google.maps.Point(0,0),                         // The origin for this image is 0, 0.
+                    new google.maps.Point(16, 16)                       // The anchor for this image is the center of the red circle at 16, 16.
+                );
+
+                addMarkerOverlay(                                       // Add this marker to the array of markers.
+                    location,                                           // Coordinates of the marker.
+                    'search spot',                                      // Title of the marker.
+                    'search initiated from here',                       // Text for infoWindow.
+                    image                                               // Image to display at the marker coordinates.
+                );
+
+                bounds = new google.maps.LatLngBounds();                // Initialise an empty bounds object, to hold the returned result bounds.
+                bounds.extend(location);                                // Extend the map bounds to the searched coordinates.
+
+                ehound = new eHound('renderLocations');                 // Initialise the eHound search with a callback function.
+
+                search = new ehound_Search();                           // Initialise the eHound search parameters object.
+                search.count = 10;                                      // Number of locations to be returned in the result set
+                search.max_distance = 0;                                // Distance limit for proximity search in km, 0 for unlimited
+                search.point = new ehound_Location(
+                    new ehound_LatLon(searchLat, searchLon)             // Search from a specific point using latitude and longitude of that point
+                );
+                search.service = 'proximity-1.2-demo';                  // Identifier for segmenting where you are using the eHound API with your API Key.
+                search.log_type = 'web';                                // Medium that you are using the eHound API, typically web, mobile, ivr etc.
+                search.create_log = true;                               // Control whether logs are created - required for reporting.
+
+                var filtersAndLogic = buildFiltersAndLogic();           // Build the search filters and search logic from the form.
+                search.filters = filtersAndLogic.filters;               // Append the filters to the search parameters.
+                search.logic = filtersAndLogic.logic;                   // Append the logic to the search parameters.
+
+                ehound.proximitySearch(search);                         // Execute the eHound Proximity Search with the search parameters.
+            }
+
+            function renderLocations(response) {
+                var resultSet = document.getElementById('resultSet');
+                if (response.error_code) {
+                    resultSet.innerHTML = '<p>Sorry, ' + response.error_message + '<\/p>';
+                }
+
+                if (response.record_set) {
+                    //show results in a table
+                    var resultsTable = '<table border="1" cellspacing="0" cellpadding="3" summary="" width="600">';
+                    resultsTable += '<tr>';
+                    resultsTable += '<td>#</td>';
+                    resultsTable += '<td>Location</td>';
+                    resultsTable += '</tr>';
+
+                    var z = 0;
+                    if (markersArray[0] !== undefined && markersArray[0].title == 'search spot') {
+                        z = 1;
+                    }
+                    for (var record_count = 0, rl = response.record_set.length; record_count < rl; record_count++ ) {
+                        var record = response.record_set[record_count];
+                        var title = record.details.location_name;
+                        var infoBoxContent = '<strong>Location #' + (record_count+1).toString() + '</strong>';
+                        infoBoxContent += '<br>' + record.address.street_address + '<br>' + record.address.town + ', ' + record.address.postal_code  + '<br>';
+                        infoBoxContent += 'Distance: ' + record.distance.km + 'km<br>';
+                        addMarkerOverlay(new google.maps.LatLng(record.latitude, record.longitude), title, infoBoxContent, null);
+
+                        if (record_count < 6) {
+                            bounds.extend(new google.maps.LatLng(record.latitude, record.longitude));
+                        }
+
+                        resultsTable += '<tr>';
+                        resultsTable += '<td>' + (record_count + 1).toString() + '</td>';
+                        resultsTable += '<td>';
+                        resultsTable += '<a href="#" onclick="centerMapOnMarker(' + z + ',' + record.latitude + ', ' + record.longitude + ');">';
+                        if (record.distance.km > 1) {
+                            resultsTable += record.distance.km + "km, ";
+                        } else {
+                            resultsTable += (record.distance.km * 1000) + "m, ";
+                        }
+                        resultsTable += record.address.street_address + ', ';
+                        resultsTable += record.address.town + ', ';
+                        resultsTable += record.address.postal_code + '';
+                        resultsTable += '</a>';
+                        resultsTable += '</td>';
+                        resultsTable += '</tr>';
+
+                        z++;
+                    }
+
+                    map.fitBounds(bounds);
+
+                    resultsTable += '</table>';
+
+                    resultSet.innerHTML = resultsTable;
+                }
+            }
+        </script>
+    </body>
+</html>
